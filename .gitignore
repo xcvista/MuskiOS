@@ -8,3 +8,5 @@
 muskios.elf
 *.a
 
+# Debug note
+.debug

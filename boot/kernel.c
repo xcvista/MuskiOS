@@ -12,12 +12,12 @@
 void kernel_main()
 {
 	vga_init();
-	kprintf("hello, world: ox%x\n", (size_t)kernel_main);
+	kprintf("%s <0x%x>: hello, world\n", __PRETTY_FUNCTION__, (size_t)kernel_main);
 }
 
 void halt(void)
 {
-	asm ("cli");
+	kprintf("%s <0x%x>: System halted.", __PRETTY_FUNCTION__, (size_t)halt);
 	for (;;)
 		asm ("hlt");
 }

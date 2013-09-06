@@ -43,6 +43,9 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS) $(BOOT_OBJS) kernel.ld
 	$(CC) -Wl,-T,kernel.ld $(ADDITIONAL_LDFLAGS) boot/boot.o boot/crt0.o $(CRTBEGIN_OBJ) boot/kernel.c.o ${OBJS} -lgcc $(CRTEND_OBJ) boot/crtn.o -o $(TARGET)
+ifeq ($(debug),yes)
+	touch .debug
+endif
 
 %.c.o: %.c $(HEADERS)
 	$(CC) $(ADDITIONAL_CFLAGS) -c $< -o $@
@@ -63,9 +66,9 @@ $(TARGET): $(OBJS) $(BOOT_OBJS) kernel.ld
 	$(NASM) $(ADDITIONAL_CPPFLAGS) -felf $< -o $@
 
 clean:
-	-rm $(OBJS) $(BOOT_OBJS) $(TARGET)
+	-rm $(OBJS) $(BOOT_OBJS) $(TARGET) .debug
 
 run: $(TARGET)
-	qemu-system-i386 -kernel $(TARGET) -S -s & > /dev/null
-	gdb $(TARGET) -ex "target remote :1234"
+	if [ -e .debug ]; then export QEMU_ARGS="-S -s"; fi; qemu-system-i386 -kernel $(TARGET) $$QEMU_ARGS &> /dev/null &
+	[ -e .debug ] && gdb $(TARGET) -ex "target remote :1234"; true
 

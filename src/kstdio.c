@@ -146,7 +146,7 @@ int kvprintf(const char *f, va_list args)
 							d /= 10;
 						}
 						
-						for (--idx; idx > 0; --idx)
+						for (--idx; idx >= 0; --idx)
 							kputchar(rbuf[idx]);
 						
 						mode = 0;
@@ -185,7 +185,7 @@ int kvprintf(const char *f, va_list args)
 							d /= 10;
 						}
 						
-						for (--idx; idx > 0; --idx)
+						for (--idx; idx >= 0; --idx)
 							kputchar(rbuf[idx]);
 						
 						mode = 0;
@@ -220,12 +220,12 @@ int kvprintf(const char *f, va_list args)
 						int idx = 0;
 						while (d)
 						{
-							int i = d % 10;
+							int i = d & 0xf;
 							rbuf[idx++] = hex[i];
-							d /= 10;
+							d >>= 4;
 						}
 						
-						for (--idx; idx > 0; --idx)
+						for (--idx; idx >= 0; --idx)
 							kputchar(rbuf[idx]);
 						
 						mode = 0;

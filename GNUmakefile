@@ -54,7 +54,7 @@ $(TARGET): $(OBJS) $(BOOT_OBJS) kernel.ld
 	$(CC) $(ADDITIONAL_OBJCFLAGS) -c $< -o $@
 
 %.mm.o: %.mm $(HEADERS)
-	$(CXX) $(ADDITIONAL_CXXFLAGS) -c $< -o $@
+	$(CXX) $(ADDITIONAL_OBJCXXFLAGS) -c $< -o $@
 
 %.o: %.s
 	$(AS) $(ADDITIONAL_CPPFLAGS) $< -o $@

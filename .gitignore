@@ -1,0 +1,10 @@
+# Object files
+*.o
+
+# Symbol files
+*.d
+
+# Final products
+muskios.elf
+*.a
+

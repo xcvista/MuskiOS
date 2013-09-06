@@ -1,4 +1,3 @@
-
 TARGET := muskios.elf
 
 CC := clang
@@ -55,7 +54,7 @@ $(TARGET): $(OBJS) $(BOOT_OBJS) kernel.ld
 	$(CC) $(ADDITIONAL_OBJCFLAGS) -c $< -o $@
 
 %.mm.o: %.mm $(HEADERS)
-	$(CXX) $(ADDITIONAL_CXXFLAGS) 0c $< -o $@
+	$(CXX) $(ADDITIONAL_CXXFLAGS) -c $< -o $@
 
 %.o: %.s
 	$(AS) $(ADDITIONAL_CPPFLAGS) $< -o $@

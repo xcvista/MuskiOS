@@ -6,7 +6,7 @@ AR := ar
 AS := as
 NASM := nasm
 
-HEADERS := $(wildcard include/*.h)
+HEADERS := $(wildcard include/*.h) $(wildcard include/*/*.h)
 C_FILES := $(wildcard src/*.c)
 CXX_FILES := $(wildcard src/*.cc)
 OBJC_FILES := $(wildcard src/*.m)
@@ -39,7 +39,7 @@ CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 
 all: $(TARGET)
-.PHONY: all clean
+.PHONY: all clean run debug
 
 $(TARGET): $(OBJS) $(BOOT_OBJS) kernel.ld
 	$(CC) -Wl,-T,kernel.ld $(ADDITIONAL_LDFLAGS) boot/boot.o boot/crt0.o $(CRTBEGIN_OBJ) boot/kernel.c.o ${OBJS} -lgcc $(CRTEND_OBJ) boot/crtn.o -o $(TARGET)
@@ -67,6 +67,9 @@ endif
 
 clean:
 	-rm $(OBJS) $(BOOT_OBJS) $(TARGET) .debug
+
+debug:
+	$(MAKE) debug=yes
 
 run: $(TARGET)
 	if [ -e .debug ]; then export QEMU_ARGS="-S -s"; fi; qemu-system-i386 -kernel $(TARGET) $$QEMU_ARGS &> /dev/null &

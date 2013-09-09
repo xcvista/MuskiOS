@@ -1,4 +1,6 @@
 TARGET := muskios.elf
+ISO_TARGET := muskios.iso
+ISO_DIR := .iso
 
 CC := clang
 CXX := clang++
@@ -26,9 +28,10 @@ endif
 
 WARNFLAGS := -Wall
 
-ADDITIONAL_CPPFLAGS := $(CPPFLAGS) -I./include
+ADDITIONAL_INCLUDEDIR := -I./include
+ADDITIONAL_CPPFLAGS := $(CPPFLAGS) -nostdinc $(ADDITIONAL_INCLUDEDIR)
 ADDITIONAL_CFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(ADDITIONAL_CPPFLAGS) -target i586-elf -ffreestanding -std=gnu99
-ADDITIONAL_CXXFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(ADDITIONAL_CPPFLAGS) -target i586-elf -ffreestanding -std=gnu++11
+ADDITIONAL_CXXFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(ADDITIONAL_CPPFLAGS) -target i586-elf -ffreestanding -std=gnu++11 -fno-exceptions -fno-rtti
 ADDITIONAL_OBJCFLAGS := $(ADDITIONAL_CFLAGS) -fobjc-runtime=gnustep-1.7 -fobjc-arc -Xclang -fobjc-default-synthesize-properties
 ADDITIONAL_OBJCXXFLAGS := $(ADDITIONAL_CXXFLAGS) -fobjc-runtime=gnustep-1.7 -fobjc-arc -Xclang -fobjc-default-synthesize-properties
 ADDITIONAL_LDFLAGS := $(LDFLAGS) $(OPTFLAGS) -ffreestanding -nostdlib
@@ -38,40 +41,76 @@ OBJS := ${C_FILES:.c=.c.o} ${CXX_FILES:.cc=.cc.o} ${OBJC_FILES:.m=.m.o} ${OBJCXX
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
 
-all: $(TARGET)
-.PHONY: all clean run debug
+all: before-all $(TARGET)
+
+.PHONY: all clean run debug before-all iso
+
+before-all:
+ifeq ($(debug),yes)
+	@[ -e $(TARGET) -a ! -e .debug ] && $(MAKE) clean; true;
+else
+	@[ -e $(TARGET) -a -e .debug ] && $(MAKE) clean; true;
+endif
 
 $(TARGET): $(OBJS) $(BOOT_OBJS) kernel.ld
-	$(CC) -Wl,-T,kernel.ld $(ADDITIONAL_LDFLAGS) boot/boot.o boot/crt0.o $(CRTBEGIN_OBJ) boot/kernel.c.o ${OBJS} -lgcc $(CRTEND_OBJ) boot/crtn.o -o $(TARGET)
+	@echo "  CCLD\t\t$@"
+	@$(CC) -Wl,-T,kernel.ld $(ADDITIONAL_LDFLAGS) boot/boot.o boot/crt0.o $(CRTBEGIN_OBJ) boot/kernel-start.c.o ${OBJS} -lgcc $(CRTEND_OBJ) boot/crtn.o -o $(TARGET)
 ifeq ($(debug),yes)
-	touch .debug
+	@echo "  TOUCH\t\t.debug"
+	@touch .debug
 endif
 
 %.c.o: %.c $(HEADERS)
-	$(CC) $(ADDITIONAL_CFLAGS) -c $< -o $@
+	@echo "  CC\t\t$<"
+	@$(CC) $(ADDITIONAL_CFLAGS) -c $< -o $@
 
 %.cc.o: %.cc $(HEADERS)
-	$(CXX) $(ADDITIONAL_CXXFLAGS) -c $< -o $@
+	@echo "  CXX\t\t$<"
+	@$(CXX) $(ADDITIONAL_CXXFLAGS) -c $< -o $@
 
 %.m.o: %.m $(HEADERS)
-	$(CC) $(ADDITIONAL_OBJCFLAGS) -c $< -o $@
+	@echo "  CC\t\t$<"
+	@$(CC) $(ADDITIONAL_OBJCFLAGS) -c $< -o $@
 
 %.mm.o: %.mm $(HEADERS)
-	$(CXX) $(ADDITIONAL_OBJCXXFLAGS) -c $< -o $@
+	@echo "  CXX\t\t$<"
+	@$(CXX) $(ADDITIONAL_OBJCXXFLAGS) -c $< -o $@
 
 %.o: %.s
-	$(AS) $(ADDITIONAL_CPPFLAGS) $< -o $@
+	@echo "  AS\t\t$<"
+	@$(AS) $(ADDITIONAL_CPPFLAGS) $< -o $@
 
 %.o: %.asm
-	$(NASM) $(ADDITIONAL_CPPFLAGS) -felf $< -o $@
+	@echo "  NASM\t\t$<"
+	@$(NASM) $(ADDITIONAL_INCLUDEDIR) -felf $< -o $@
 
 clean:
-	-rm $(OBJS) $(BOOT_OBJS) $(TARGET) .debug
+	@echo "  CLEAN"
+	@-rm $(OBJS) $(BOOT_OBJS) $(TARGET) .debug $(ISO_TARGET) $(ISO_DIR) > /dev/null 2>&1
 
 debug:
-	$(MAKE) debug=yes
+	@$(MAKE) debug=yes
+
+iso: $(ISO_TARGET)
+
+$(ISO_TARGET): $(ISO_DIR)/boot/grub/grub.cfg $(ISO_DIR)/boot/$(TARGET)
+	@echo "  MKRESCUE\t$@"
+	@grub-mkrescue -o $@ $(ISO_DIR)
+
+$(ISO_DIR)/boot/grub/grub.cfg: grub.cfg $(ISO_DIR)/boot/grub
+	@echo "  CP\t\tgrub.cfg"
+	@cp grub.cfg $(ISO_DIR)/boot/grub
+
+$(ISO_DIR)/boot/$(TARGET): $(TARGET) $(ISO_DIR)/boot/grub
+	@echo "  CP\t\t$(TARGET)"
+	@cp $(TARGET) $(ISO_DIR)/boot
+
+$(ISO_DIR)/boot/grub:
+	@echo "  MKDIR\t\t$@"
+	@mkdir -p $@
 
 run: $(TARGET)
-	if [ -e .debug ]; then export QEMU_ARGS="-S -s"; fi; qemu-system-i386 -kernel $(TARGET) $$QEMU_ARGS &> /dev/null &
-	[ -e .debug ] && gdb $(TARGET) -ex "target remote :1234"; true
+	@echo "  QEMU\t\t$(TARGET)"
+	@if [ -e .debug ]; then export QEMU_ARGS="-S -s"; fi; qemu-system-i386 -kernel $(TARGET) $$QEMU_ARGS > /dev/null 2>&1 &
+	@[ -e .debug ] && echo "  GDB\t\t$(TARGET)" && gdb $(TARGET) -ex "target remote :1234"; true
 

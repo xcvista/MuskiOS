@@ -23,10 +23,6 @@
 #ifndef _STDINT_H
 #define _STDINT_H	1
 
-#include <features.h>
-#include <bits/wchar.h>
-#include <bits/wordsize.h>
-
 /* Exact integral types.  */
 
 /* Signed.  */

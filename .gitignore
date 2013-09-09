@@ -6,7 +6,9 @@
 
 # Final products
 muskios.elf
+muskios.iso
 *.a
+.iso
 
 # Debug note
 .debug

@@ -60,7 +60,7 @@ ifeq ($(debug),yes)
 	@touch .debug
 endif
 
-%.c.o: %.c $(HEADERS)
+%.c.o: %.c include/muskios/version.h $(HEADERS)
 	@echo "  CC\t\t$<"
 	@$(CC) $(ADDITIONAL_CFLAGS) -c $< -o $@
 
@@ -84,18 +84,28 @@ endif
 	@echo "  NASM\t\t$<"
 	@$(NASM) $(ADDITIONAL_INCLUDEDIR) -felf $< -o $@
 
+include/muskios/version.h:
+	@echo "  GEN\t\tversion.h"
+	@echo "#ifndef _MUSKIOS_VERSION_H_" > $@
+	@echo "#define _MUSKIOS_VERSION_H_" >> $@
+	@echo "#define MUSKIOS_VERSION \"$(shell git rev-parse --short HEAD)\"" >> $@
+	@echo "#endif" >> $@
+
 clean:
 	@echo "  CLEAN"
-	@-rm $(OBJS) $(BOOT_OBJS) $(TARGET) .debug $(ISO_TARGET) $(ISO_DIR) > /dev/null 2>&1
+	@-rm -r $(OBJS) $(BOOT_OBJS) include/muskios/version.h $(TARGET) .debug $(ISO_TARGET) $(ISO_DIR) > /dev/null 2>&1
 
 debug:
 	@$(MAKE) debug=yes
+
+debug-iso:
+	@$(MAKE) iso debug=yes
 
 iso: $(ISO_TARGET)
 
 $(ISO_TARGET): $(ISO_DIR)/boot/grub/grub.cfg $(ISO_DIR)/boot/$(TARGET)
 	@echo "  MKRESCUE\t$@"
-	@grub-mkrescue -o $@ $(ISO_DIR)
+	@grub-mkrescue -o $@ $(ISO_DIR) > /dev/null 2>&1
 
 $(ISO_DIR)/boot/grub/grub.cfg: grub.cfg $(ISO_DIR)/boot/grub
 	@echo "  CP\t\tgrub.cfg"
@@ -111,6 +121,6 @@ $(ISO_DIR)/boot/grub:
 
 run: $(TARGET)
 	@echo "  QEMU\t\t$(TARGET)"
-	@if [ -e .debug ]; then export QEMU_ARGS="-S -s"; fi; qemu-system-i386 -kernel $(TARGET) $$QEMU_ARGS > /dev/null 2>&1 &
+	@if [ -e .debug ]; then export QEMU_ARGS="-S -s"; fi; if [ -e $(ISO_TARGET) ]; then export QEMU_IMG="-cdrom $(ISO_TARGET)"; else export QEMU_IMG="-kernel $(TARGET)"; fi; qemu-system-i386 $$QEMU_IMG $$QEMU_ARGS > /dev/null 2>&1 &
 	@[ -e .debug ] && echo "  GDB\t\t$(TARGET)" && gdb $(TARGET) -ex "target remote :1234"; true
 

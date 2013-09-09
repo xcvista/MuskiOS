@@ -3,6 +3,7 @@
 #include <muskios/kernel-start.h>
 #include <muskios/kstdio.h>
 #include <muskios/vga.h>
+#include <muskios/version.h>
 
 /* Check if the compiler thinks if we are targeting the wrong operating system. */
 #if defined(__linux__)
@@ -30,7 +31,7 @@ void kernel_start(void)
 		      __FILE__, __LINE__, __PRETTY_FUNCTION__, (size_t)kernel_start);
 	}
 
-	kprintf("muskios 0.1\nCopyright 2013 Maxthon Chan\n\n");
+	kprintf("muskios 0.1 (git %s)\nCopyright 2013 Maxthon Chan\n\n", MUSKIOS_VERSION);
 	kprintf("Multiboot 0x%x", magic);
 }
 

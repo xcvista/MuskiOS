@@ -7,6 +7,7 @@
 # Final products
 muskios.elf
 muskios.iso
+include/muskios/version.h
 *.a
 .iso
 

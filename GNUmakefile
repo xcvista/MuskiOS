@@ -85,7 +85,7 @@ endif
 	@$(NASM) $(ADDITIONAL_INCLUDEDIR) -felf $< -o $@
 
 include/muskios/version.h:
-	@echo "  GEN\t\tversion.h"
+	@echo "  GEN\t\t$@"
 	@echo "#ifndef _MUSKIOS_VERSION_H_" > $@
 	@echo "#define _MUSKIOS_VERSION_H_" >> $@
 	@echo "#define MUSKIOS_VERSION \"$(shell git rev-parse --short HEAD)\"" >> $@

@@ -1,6 +1,6 @@
 # Muski Public Open License (Permissive)
 
-Copyright &copy; 2011-2013 Maxthon Chan, John Shi, et al. All rights reserved.
+Copyright &copy; 2011-2013 Maxthon Chan et al. All rights reserved.
 
 ## License
 

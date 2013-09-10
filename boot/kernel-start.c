@@ -26,9 +26,7 @@ void kernel_start(void)
 	
 	if (magic != 0x2badb002)
 	{
-		panic("%s:%d <%s: 0x%x>: PANIC"
-		      "We are not booting off a Multiboot bootloader.",
-		      __FILE__, __LINE__, __PRETTY_FUNCTION__, (size_t)kernel_start);
+		kpanic("We are not booting off a Multiboot bootloader.");
 	}
 
 	kprintf("muskios 0.1 (git %s)\nCopyright 2013 Maxthon Chan\n\n", MUSKIOS_VERSION);

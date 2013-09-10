@@ -26,7 +26,7 @@ else
 OPTFLAGS := -Os
 endif
 
-WARNFLAGS := -Wall
+WARNFLAGS := -Wall -Wformat
 
 ADDITIONAL_INCLUDEDIR := -I./include
 ADDITIONAL_CPPFLAGS := $(CPPFLAGS) -nostdinc $(ADDITIONAL_INCLUDEDIR)

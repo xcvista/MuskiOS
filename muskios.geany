@@ -18,7 +18,8 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=-1
+current_page=0
+FILE_NAME_0=423;Make;0;16;1;1;0;/home/technix/Developer/osdev/GNUmakefile;0;4
 
 [build-menu]
 NF_00_LB=_Make
@@ -33,3 +34,6 @@ NF_02_WD=
 EX_00_LB=_Execute
 EX_00_CM=make run
 EX_00_WD=
+
+[VTE]
+last_dir=/home/technix

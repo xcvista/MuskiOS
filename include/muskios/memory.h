@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <objc/runtime.h>
 
 typedef enum _mem_flags
 {
@@ -16,9 +17,18 @@ typedef enum _mem_flags
 
 typedef struct _mem_mapitem
 {
+	Class isa;
+	NSUInteger _retainCount;
 	void *base;
-	size_t length;
-	mem_flags flags;
+	uint32_t flags;
 } mem_mapitem;
+
+typedef struct _mem_mallocpage
+{
+	Class isa;
+	NSUInteger _retainCount;
+	uint16_t size;
+	uint16_t flags;
+} mem_mallocpage;
 
 #endif

@@ -19,6 +19,11 @@ BOOT_C_FILES := $(wildcard boot/*.c)
 BOOT_S_FILES := $(wildcard boot/*.s)
 BOOT_ASM_FILES := $(wildcard boot/*.asm)
 
+LIBS := # objc
+
+LIB_TARGET := # $(shell echo $(LIBS) | xargs printf "lib%s.a ")
+LIBFLAGS := # $(shell echo $(LIBS) | xargs printf "-l%s ")
+
 ifeq ($(debug),yes)
 CFLAGS += -g
 OPTFLAGS := -O0
@@ -28,7 +33,7 @@ endif
 
 WARNFLAGS := -Wall -Wformat
 
-ADDITIONAL_INCLUDEDIR := -I./include
+ADDITIONAL_INCLUDEDIR := -I./include -I./libobjc/include
 ADDITIONAL_CPPFLAGS := $(CPPFLAGS) -nostdinc $(ADDITIONAL_INCLUDEDIR)
 ADDITIONAL_CFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(ADDITIONAL_CPPFLAGS) -target i586-elf -ffreestanding -std=gnu99
 ADDITIONAL_CXXFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(ADDITIONAL_CPPFLAGS) -target i586-elf -ffreestanding -std=gnu++11 -fno-exceptions -fno-rtti
@@ -52,9 +57,9 @@ else
 	@[ -e $(TARGET) -a -e .debug ] && $(MAKE) clean; true;
 endif
 
-$(TARGET): $(OBJS) $(BOOT_OBJS) kernel.ld
+$(TARGET): $(OBJS) $(BOOT_OBJS) $(LIB_TARGET) kernel.ld
 	@echo "  CCLD\t\t$@"
-	@$(CC) -Wl,-T,kernel.ld $(ADDITIONAL_LDFLAGS) boot/boot.o boot/crt0.o $(CRTBEGIN_OBJ) boot/kernel-start.c.o ${OBJS} -lgcc $(CRTEND_OBJ) boot/crtn.o -o $(TARGET)
+	@$(CC) -Wl,-T,kernel.ld $(ADDITIONAL_LDFLAGS) boot/boot.o boot/crt0.o $(CRTBEGIN_OBJ) boot/kernel-start.c.o ${OBJS} $(LIBFLAGS) -lgcc $(CRTEND_OBJ) boot/crtn.o -o $(TARGET)
 ifeq ($(debug),yes)
 	@echo "  TOUCH\t\t.debug"
 	@touch .debug
@@ -90,6 +95,11 @@ include/muskios/version.h:
 	@echo "#define _MUSKIOS_VERSION_H_" >> $@
 	@echo "#define MUSKIOS_VERSION \"$(shell git rev-parse --short HEAD)\"" >> $@
 	@echo "#endif" >> $@
+
+lib%.a: %
+	@$(MAKE) -C $<
+	@echo "  CP\t\t$@"
+	@cp $</lib$<.a .
 
 clean:
 	@echo "  CLEAN"

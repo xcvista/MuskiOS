@@ -31,20 +31,27 @@ else
 OPTFLAGS := -Os
 endif
 
-WARNFLAGS := -Wall -Wformat
+LDOPTFLAGS := $(OPTFLAGS)
+
+ifeq ($(lto),yes)
+OPTFLAGS += -flto
+LDOPTFLAGS += -flto -Wl,--plugin,LLVMgold.so
+endif
+
+WARNFLAGS := -Wall
 
 ADDITIONAL_INCLUDEDIR := -I./include -I./libobjc/include
 ADDITIONAL_CPPFLAGS := $(CPPFLAGS) -nostdinc $(ADDITIONAL_INCLUDEDIR)
-ADDITIONAL_CFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(ADDITIONAL_CPPFLAGS) -target i586-elf -ffreestanding -std=gnu99
-ADDITIONAL_CXXFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(ADDITIONAL_CPPFLAGS) -target i586-elf -ffreestanding -std=gnu++11 -fno-exceptions -fno-rtti
+ADDITIONAL_CFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(ADDITIONAL_CPPFLAGS) -target i686-elf -ffreestanding -std=gnu99
+ADDITIONAL_CXXFLAGS := $(CFLAGS) $(OPTFLAGS) $(WARNFLAGS) $(CXXFLAGS) $(ADDITIONAL_CPPFLAGS) -target i686-elf -ffreestanding -std=gnu++11 -fno-exceptions -fno-rtti
 ADDITIONAL_OBJCFLAGS := $(ADDITIONAL_CFLAGS) -fobjc-runtime=gnustep-1.7 -fobjc-arc -Xclang -fobjc-default-synthesize-properties
 ADDITIONAL_OBJCXXFLAGS := $(ADDITIONAL_CXXFLAGS) -fobjc-runtime=gnustep-1.7 -fobjc-arc -Xclang -fobjc-default-synthesize-properties
-ADDITIONAL_LDFLAGS := $(LDFLAGS) $(OPTFLAGS) -ffreestanding -nostdlib
+ADDITIONAL_LDFLAGS := $(LDFLAGS) $(LDOPTFLAGS) -target i686-elf -ffreestanding -nostdlib
 
 BOOT_OBJS := ${BOOT_C_FILES:.c=.c.o} ${BOOT_S_FILES:.s=.o} ${BOOT_ASM_FILES:.asm=.o}
 OBJS := ${C_FILES:.c=.c.o} ${CXX_FILES:.cc=.cc.o} ${OBJC_FILES:.m=.m.o} ${OBJCXX_FILES:.mm=.mm.o} ${S_FILES:.s=.o} ${ASM_FILES:.asm=.asm.o}
-CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
-CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -m32 -print-file-name=crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -m32 -print-file-name=crtend.o)
 
 all: before-all $(TARGET)
 
@@ -83,7 +90,7 @@ endif
 
 %.o: %.s
 	@echo "  AS\t\t$<"
-	@$(AS) $(ADDITIONAL_CPPFLAGS) $< -o $@
+	@$(AS) $(ADDITIONAL_CPPFLAGS) --32 $< -o $@
 
 %.o: %.asm
 	@echo "  NASM\t\t$<"

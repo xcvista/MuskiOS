@@ -65,7 +65,7 @@ void vga_init(void)
 void vga_clear(void)
 {
 	memset(vga_mem, 0, vga_screen_size.height * vga_screen_size.width * sizeof(vga_char));
-	vga_set_cursor(vga_mkloc(0, 0));
+	vga_set_cursor(vga_mkloc(1, 1));
 }
 
 void vga_set_cursor(vga_loc loc)
